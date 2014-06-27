@@ -269,8 +269,8 @@ http.createServer(function (REQ, RESP) {
 				var data_path=wisdmconfig.wisdmfileserver.data_path+'/data/'+checksum+'.dat';
 				if (!file_exists(data_path)) {
 					fs.linkSync(path,data_path);
-					callback(checksum);
 				}
+				callback(checksum);
 			}
 			else {
 				callback('');

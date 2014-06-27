@@ -2,7 +2,7 @@ include('wisdmws:/wisdm.ws');
 include('wfsclient.ws');
 
 function run() {
-	var FS=new WFSClient('localhost:8006','fs1','');
+	var FS=new WFSClient('realhub.org:8006','fs1','');
 	
 	var txt1=FS.readTextFile('test1.txt');
 	
