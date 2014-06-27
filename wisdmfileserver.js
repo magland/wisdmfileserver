@@ -204,12 +204,6 @@ http.createServer(function (REQ, RESP) {
 			else {
 				if (is_valid_file_type(get_file_suffix(path2),file_types)) {
 					get_file_checksum(path2,function(checksum) {
-						if (checksum) {
-							var data_path=wisdmconfig.wisdmfileserver.data_path+'/data/'+checksum+'.dat';
-							if (!file_exists(data_path)) {
-								fs.linkSync(path2,data_path);
-							}
-						}
 						ret.files.push({name:file0,checksum:checksum});
 						cb({success:true});
 					});
@@ -234,7 +228,7 @@ http.createServer(function (REQ, RESP) {
 	function get_file_checksum(path,callback) {
 		if (!file_exists(path)) {
 			console.error('Unexpected problem in get_file_checksum, file does not exist.');
-			callback('');
+			finalize('');
 			return;
 		}
 		var stats=fs.statSync(path);
@@ -244,13 +238,13 @@ http.createServer(function (REQ, RESP) {
 		DB.find({_id:path},{checksum:1,mtime:1,size:1},function(err,docs) {
 			if (err) {
 				console.error('Unexpected problem in get_file_checksum, database error: '+err.message);
-				callback('');
+				finalize('');
 				return;
 			}
 			var doc=docs[0];
 			if (doc) {
 				if ((doc.mtime==stats.mtime)&&(doc.size==stats.size)) {
-					callback(doc.checksum);
+					finalize(doc.checksum);
 					return;
 				}
 			}
@@ -260,16 +254,28 @@ http.createServer(function (REQ, RESP) {
 						if (err) {
 							console.error('Unexpected problem saving checksum to database');
 						}
-						callback(checksum);
+						finalize(checksum);
 					});
 				}
 				else {
 					console.error('Unexpected problem in get_file_checksum, computed checksum is empty.');
-					callback('');
+					finalize('');
 					return;
 				}
 			});
 		});
+		function finalize(checksum) {
+			if (checksum) {
+				var data_path=wisdmconfig.wisdmfileserver.data_path+'/data/'+checksum+'.dat';
+				if (!file_exists(data_path)) {
+					fs.linkSync(path2,data_path);
+					callback(checksum);
+				}
+			}
+			else {
+				callback('');
+			}
+		}
 	}
 	function compute_file_checksum(path,callback) {
 		var hash=require('crypto').createHash('sha1');
@@ -335,4 +341,3 @@ http.createServer(function (REQ, RESP) {
 	
 }).listen(wisdmconfig.wisdmfileserver.listen_port);
 console.log ('Listening on port '+wisdmconfig.wisdmfileserver.listen_port);
-

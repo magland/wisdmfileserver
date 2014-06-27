@@ -17,12 +17,16 @@ function WFSClient(fshost,fsname,folder) {
 	
 	function get_file_checksum(path,callback) {
 		var url='http://'+fshost+'/wisdmfileserver/getFileChecksum?fsname='+fsname+'&path='+append_paths(folder,path);
+		url+='&rand='+Math.random();
+		console.log('get_text_checksum: '+url);
 		$.get(url,function(txt) {
 			callback({success:true,checksum:txt});
 		});
 	}
 	function get_text_file(checksum,callback) {
 		var url='http://'+fshost+'/wisdmfileserver/getFileData?checksum='+checksum;
+		url+='&rand='+Math.random();
+		console.log('get_text_file: '+url);
 		$.get(url,function(txt) {
 			callback({success:true,text:txt});
 		});
