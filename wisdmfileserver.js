@@ -153,7 +153,11 @@ http.createServer(function (REQ, RESP) {
 	}
 	function make_dir_if_needed(path) {
 		if (is_directory(path)) return true;
-		fs.mkdirSync(path);
+		try {
+			fs.mkdirSync(path);
+		}
+		catch(err) {
+		}
 		if (is_directory(path)) return true;
 		return false;
 	}
@@ -195,7 +199,7 @@ http.createServer(function (REQ, RESP) {
 		}
 		for_each_async(list,function(file0,cb) {
 			var path2=path1+'/'+file0;
-			if (fs.statSync(path2).isDirectory()) {
+			if ((fs.existsSync(path2))&&(fs.statSync(path2).isDirectory())) {
 				get_folder_data(fsname,append_paths(path,file0),file_types,function(ret2) {
 					ret.dirs.push({name:file0,content:ret2});
 					cb({success:true});
@@ -267,7 +271,7 @@ http.createServer(function (REQ, RESP) {
 		function finalize(checksum) {
 			if (checksum) {
 				var data_path=wisdmconfig.wisdmfileserver.data_path+'/data/'+checksum+'.dat';
-				if (!file_exists(data_path)) {
+				if ((!file_exists(data_path))&&(file_exists(path))) {
 					fs.linkSync(path,data_path);
 				}
 				callback(checksum);
