@@ -259,7 +259,7 @@ http.createServer(function (REQ, RESP) {
 				}
 				else {
 					console.error('Unexpected problem in get_file_checksum, computed checksum is empty.');
-					finalize('');
+					finalize('','');
 					return;
 				}
 			});
@@ -268,7 +268,7 @@ http.createServer(function (REQ, RESP) {
 			if (checksum) {
 				var data_path=wisdmconfig.wisdmfileserver.data_path+'/data/'+checksum+'.dat';
 				if (!file_exists(data_path)) {
-					fs.linkSync(path2,data_path);
+					fs.linkSync(path,data_path);
 					callback(checksum);
 				}
 			}
