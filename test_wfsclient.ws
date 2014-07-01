@@ -2,11 +2,12 @@ include('wisdmws:/wisdm.ws');
 include('wfsclient.ws');
 
 function run() {
-	var FS=new WFSClient('realhub.org:8006','fs1','');
+	var FS=new WFSClient('realhub.org:8006','fs1','',{initialize:true});
 	
 	var txt1=FS.readTextFile('test1.txt');
 	
 	var ret=FS.writeTextFile('test2.txt','This is a file: test2.txt\n');
+	//var ret=FS.writeTextFile('dir1/test1.txt','ANOTHER FILE\n');
 	
 	var txt2=FS.readTextFile('test2.txt');
 	var txt3=FS.readTextFile('dir1/test1.txt');

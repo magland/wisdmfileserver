@@ -1,9 +1,12 @@
 //depends on httpsync
 
-function WFSClient(host,fsname,folder,file_types) {
+function WFSClient(host,fsname,folder,config) {
 	if (!folder) folder='';
-	if (!file_types) file_types=[];
+	if (!config) config={};
+	if (!config.file_types) config.file_types=[];
+	if (!('initialize' in config)) config.initialize=true;
 	
+	this.initialize=function() {initialize_folder_data();};
 	this.readTextFile=function(path) {return _readTextFile(path);};
 	this.writeTextFile=function(path,text) {return _writeTextFile(path,text);};
 	this.readDir=function(path) {return _readDir(path);};
@@ -13,11 +16,15 @@ function WFSClient(host,fsname,folder,file_types) {
 	var m_folder_data={files:[],dirs:[]};
 	var m_base_url='http://'+host+'/wisdmfileserver';
 	var m_written_text_files={};
-	initialize_folder_data();
+	var m_initialized=false;
+	if (config.initialize) {
+		initialize_folder_data();
+	}
 	
 	function initialize_folder_data() {
-		var url=m_base_url+'/getFolderData?fsname='+fsname+'&path='+folder+'&file_types='+JSON.stringify(file_types);
+		var url=m_base_url+'/getFolderData?fsname='+fsname+'&path='+folder+'&file_types='+JSON.stringify(config.file_types);
 		m_folder_data=get_json(url);
+		m_initialized=true;
 	}
 	
 	function _readTextFile(path) {
@@ -108,9 +115,15 @@ function WFSClient(host,fsname,folder,file_types) {
 		END_PROCESS												
 	}
 	function find_file_checksum(path) {
-		var file=find_file(m_folder_data,path);
-		if (!file) return '';
-		return file.checksum;
+		if (m_initialized) {
+			var file=find_file(m_folder_data,path);
+			if (!file) return '';
+			return file.checksum;
+		}
+		else {
+			var url=m_base_url+'/getFileChecksum?fsname='+fsname+'&path='+append_paths(folder,path);
+			return get_text(url);
+		}
 	}
 	function find_file(data,path) {
 		var ind1=path.indexOf('/');
