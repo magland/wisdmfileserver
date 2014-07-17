@@ -280,7 +280,12 @@ http.createServer(function (REQ, RESP) {
 				var data_path=wisdmconfig.wisdmfileserver.data_path+'/data/'+checksum+'.dat';
 				if ((!file_exists(data_path))&&(file_exists(path))) {
 					console.log('hard linking',path,data_path);
-					fs.linkSync(path,data_path);
+					try {
+						fs.linkSync(path,data_path);
+					}
+					catch(err) {
+						console.error(err.message);
+					}
 				}
 				callback(checksum);
 			}
