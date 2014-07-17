@@ -11,13 +11,13 @@ function run() {
 	
 	var txt2=FS.readTextFile('test2.txt');
 	var txt3=FS.readTextFile('dir1/test1.txt');
-	console.log('txt1='+txt1,'txt2='+txt2,'txt3='+txt3);
+	console.log ('txt1='+txt1,'txt2='+txt2,'txt3='+txt3);
 	
 	var tmp=FS.readDir('');
-	console.log(tmp);
+	console.log (tmp);
 	
 	var tmp2=FS.readDir('dir1');
-	console.log(tmp2);
+	console.log (tmp2);
 	
 	var X=FS.loadFile('test1.txt');
 	

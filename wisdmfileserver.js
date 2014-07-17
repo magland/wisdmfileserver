@@ -40,6 +40,7 @@ http.createServer(function (REQ, RESP) {
 			var fsname=url_parts.query.fsname||'';
 			var path=url_parts.query.path||'';
 			var file_types=url_parts.query.file_types||'[]';
+			var recursive=((url_parts.query.recursive||'true')=='true');
 			try {
 				file_types=JSON.parse(file_types);
 			}
@@ -47,7 +48,7 @@ http.createServer(function (REQ, RESP) {
 				send_json_response('Error parsing file types.');
 				return;
 			}
-			get_folder_data(fsname,path,file_types,function(resp) {
+			get_folder_data(fsname,path,file_types,recursive,function(resp) {
 				send_json_response(resp);
 			});
 		}
@@ -186,7 +187,7 @@ http.createServer(function (REQ, RESP) {
 		}
 	}
 	
-	function get_folder_data(fsname,path,file_types,callback) {
+	function get_folder_data(fsname,path,file_types,recursive,callback) {
 		var ret={files:[],dirs:[]};
 		var path1=wisdmconfig.wisdmfileserver.data_path+'/files/'+fsname+'/'+path;
 		var list;
@@ -200,10 +201,16 @@ http.createServer(function (REQ, RESP) {
 		for_each_async(list,function(file0,cb) {
 			var path2=path1+'/'+file0;
 			if ((fs.existsSync(path2))&&(fs.statSync(path2).isDirectory())) {
-				get_folder_data(fsname,append_paths(path,file0),file_types,function(ret2) {
-					ret.dirs.push({name:file0,content:ret2});
+				if (recursive) {
+					get_folder_data(fsname,append_paths(path,file0),file_types,recursive,function(ret2) {
+						ret.dirs.push({name:file0,content:ret2});
+						cb({success:true});
+					});
+				}
+				else {
+					ret.dirs.push({name:file0,content:{}});
 					cb({success:true});
-				});
+				}
 			}
 			else {
 				if (is_valid_file_type(get_file_suffix(path2),file_types)) {
@@ -272,6 +279,7 @@ http.createServer(function (REQ, RESP) {
 			if (checksum) {
 				var data_path=wisdmconfig.wisdmfileserver.data_path+'/data/'+checksum+'.dat';
 				if ((!file_exists(data_path))&&(file_exists(path))) {
+					console.log('hard linking',path,data_path);
 					fs.linkSync(path,data_path);
 				}
 				callback(checksum);

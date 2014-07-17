@@ -2,6 +2,7 @@ function WFSClient(fshost,fsname,folder) {
 	
 	this.readTextFile=function(path,callback) {_readTextFile(path,callback);};
 	this.writeTextFile=function(path,text,callback) {_writeTextFile(path,text,callback);};
+	this.readDir=function(path,callback) {_readDir(path,callback);};
 	
 	if (!fshost) fshost=get_default_host();
 	
@@ -23,14 +24,6 @@ function WFSClient(fshost,fsname,folder) {
 			callback({success:true,checksum:txt});
 		});
 	}
-	function get_text_file(checksum,callback) {
-		var url='http://'+fshost+'/wisdmfileserver/getFileData?checksum='+checksum;
-		url+='&rand='+Math.random();
-		console.log('get_text_file: '+url);
-		$.get(url,function(txt) {
-			callback({success:true,text:txt});
-		});
-	}
 	
 	function _writeTextFile(path,text,callback) {
 		set_file_text(path,text,function(tmp1) {
@@ -41,6 +34,25 @@ function WFSClient(fshost,fsname,folder) {
 			callback({success:true});
 		});
 	}
+	
+	function _readDir(path,callback) {
+		var url='http://'+fshost+'/wisdmfileserver/getFolderData?path='+checksum+'&recursive=false';
+		url+='&rand='+Math.random();
+		console.log('get_folder_data: '+url);
+		$.get(url,function(resp) {
+			callback(resp);
+		});
+	}
+	
+	function get_text_file(checksum,callback) {
+		var url='http://'+fshost+'/wisdmfileserver/getFileData?checksum='+checksum;
+		url+='&rand='+Math.random();
+		console.log('get_text_file: '+url);
+		$.get(url,function(txt) {
+			callback({success:true,text:txt});
+		});
+	}
+	
 	function set_file_text(path,text,callback) {
 		var url='http://'+fshost+'/wisdmfileserver/setFileData?fsname='+fsname+'&path='+append_paths(folder,path);
 		$.post(url,text,function(tmp1) {
