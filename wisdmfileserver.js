@@ -41,14 +41,16 @@ http.createServer(function (REQ, RESP) {
 			var path=url_parts.query.path||'';
 			var file_types=url_parts.query.file_types||'[]';
 			var recursive=((url_parts.query.recursive||'true')=='true');
+			var exclude=url_parts.query.exclude||'[]';
 			try {
 				file_types=JSON.parse(file_types);
+				exclude=JSON.parse(exclude);
 			}
 			catch(err) {
-				send_json_response('Error parsing file types.');
+				send_json_response('Error parsing file types or exclude.');
 				return;
 			}
-			get_folder_data(fsname,path,file_types,recursive,function(resp) {
+			get_folder_data(fsname,path,file_types,exclude,recursive,function(resp) {
 				send_json_response(resp);
 			});
 		}
@@ -187,7 +189,7 @@ http.createServer(function (REQ, RESP) {
 		}
 	}
 	
-	function get_folder_data(fsname,path,file_types,recursive,callback) {
+	function get_folder_data(fsname,path,file_types,exclude,recursive,callback) {
 		var ret={files:[],dirs:[]};
 		var path1=wisdmconfig.wisdmfileserver.data_path+'/files/'+fsname+'/'+path;
 		var list;
@@ -199,28 +201,31 @@ http.createServer(function (REQ, RESP) {
 			return;
 		}
 		for_each_async(list,function(file0,cb) {
-			var path2=path1+'/'+file0;
-			if ((fs.existsSync(path2))&&(fs.statSync(path2).isDirectory())) {
-				if (recursive) {
-					get_folder_data(fsname,append_paths(path,file0),file_types,recursive,function(ret2) {
-						ret.dirs.push({name:file0,content:ret2});
+			if (exclude.indexOf(file0)<0) {
+				var path2=path1+'/'+file0;
+				if ((fs.existsSync(path2))&&(fs.statSync(path2).isDirectory())) {
+					if (recursive) {
+						get_folder_data(fsname,append_paths(path,file0),file_types,exclude,recursive,function(ret2) {
+							ret.dirs.push({name:file0,content:ret2});
+							cb({success:true});
+						});
+					}
+					else {
+						ret.dirs.push({name:file0,content:{}});
 						cb({success:true});
-					});
+					}
 				}
 				else {
-					ret.dirs.push({name:file0,content:{}});
-					cb({success:true});
+					if (is_valid_file_type(get_file_suffix(path2),file_types)) {
+						get_file_checksum(path2,function(checksum) {
+							ret.files.push({name:file0,checksum:checksum});
+							cb({success:true});
+						});
+					}
+					else cb({success:true});
 				}
 			}
-			else {
-				if (is_valid_file_type(get_file_suffix(path2),file_types)) {
-					get_file_checksum(path2,function(checksum) {
-						ret.files.push({name:file0,checksum:checksum});
-						cb({success:true});
-					});
-				}
-				else cb({success:true});
-			}
+			else cb({success:true});
 		},function() {
 			callback(ret);
 		});

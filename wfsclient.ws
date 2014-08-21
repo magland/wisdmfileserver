@@ -12,6 +12,8 @@ function WFSClient(host,fsname,folder,config) {
 	this.readDir=function(path) {return _readDir(path);};
 	this.loadFile=function(path) {return _loadFile(path);};
 	this.saveFile=function(path,file_obj) {return _saveFile(path,file_obj);};
+	this.loadArray=function(path) {return _loadArray(path);};
+	this.loadNii=function(path) {return _loadNii(path);};
 	
 	var m_folder_data={files:[],dirs:[]};
 	var m_base_url='http://'+host+'/wisdmfileserver';
@@ -77,6 +79,72 @@ function WFSClient(host,fsname,folder,config) {
 			echo "wget FAILED";
 			exit 1;
 		fi
+		
+		END_PROCESS
+		
+		return X;
+	}
+	function _loadArray(path) {
+		var checksum=find_file_checksum(path);
+		if (!checksum) {
+			console.error('checksum is null for: '+path);
+			return null;
+		}
+		var url=m_base_url+'/getFileData?checksum='+checksum;
+		
+		BEGIN_PROCESS bash [mda X]=download_array(string url)
+		PROCESSOR_ID downloadArrayADR
+		
+		#download a file by url
+		
+		wget $url -O $X
+		RC=$?
+		if [ "$RC" = "0" ]; then
+			echo "OK";
+		else
+			echo "wget FAILED";
+			exit 1;
+		fi
+		
+		if [[ -s $X ]] ; then
+			echo "File has data."
+		else
+			echo "File is empty."
+			exit 1;
+		fi ;
+		
+		END_PROCESS
+		
+		return X;
+	}
+	function _loadNii(path) {
+		var checksum=find_file_checksum(path);
+		if (!checksum) {
+			console.error('checksum is null for: '+path);
+			return null;
+		}
+		var url=m_base_url+'/getFileData?checksum='+checksum;
+		
+		BEGIN_PROCESS bash [nii X]=download_nii(string url)
+		PROCESSOR_ID downloadNiiADRX2
+		
+		#download a file by url
+		
+		wget $url -O $X
+		RC=$?
+		if [ "$RC" = "0" ]; then
+			echo "OK";
+		else
+			echo "wget FAILED";
+			exit 1;
+		fi
+		
+		if [[ -s $X ]] ; then
+			echo "File has data."
+		else
+			echo "File is empty."
+			exit 1;
+		fi ;
 		
 		END_PROCESS
 		
