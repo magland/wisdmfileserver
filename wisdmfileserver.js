@@ -57,6 +57,7 @@ http.createServer(function (REQ, RESP) {
 		else if (url_parts.pathname=='/wisdmfileserver/getFileChecksum') {
 			var fsname=url_parts.query.fsname||'';
 			var path=url_parts.query.path||'';
+			console.log('get_file_checksum 2',wisdmconfig.wisdmfileserver.data_path+'/files/'+fsname+'/'+path);
 			get_file_checksum(wisdmconfig.wisdmfileserver.data_path+'/files/'+fsname+'/'+path,function(checksum) {
 				send_text_response(checksum);
 			});
@@ -190,6 +191,7 @@ http.createServer(function (REQ, RESP) {
 	}
 	
 	function get_folder_data(fsname,path,file_types,exclude,recursive,callback) {
+		console.log('get_folder_data',fsname,path,recursive);
 		var ret={files:[],dirs:[]};
 		var path1=wisdmconfig.wisdmfileserver.data_path+'/files/'+fsname+'/'+path;
 		var list;
@@ -217,6 +219,7 @@ http.createServer(function (REQ, RESP) {
 				}
 				else {
 					if (is_valid_file_type(get_file_suffix(path2),file_types)) {
+						console.log('get_file_checkum 1',path2);
 						get_file_checksum(path2,function(checksum) {
 							ret.files.push({name:file0,checksum:checksum});
 							cb({success:true});
