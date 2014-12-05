@@ -203,6 +203,11 @@ http.createServer(function (REQ, RESP) {
 			return;
 		}
 		for_each_async(list,function(file0,cb) {
+			if (!file0) {
+				console.log('WARNING file0 is empty or undefined',file0,path);
+				cb({success:false});
+				return;
+			}
 			if (exclude.indexOf(file0)<0) {
 				var path2=path1+'/'+file0;
 				if ((fs.existsSync(path2))&&(fs.statSync(path2).isDirectory())) {
