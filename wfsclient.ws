@@ -4,6 +4,7 @@ function WFSClient(host,fsname,folder,config) {
 	if (!folder) folder='';
 	if (!config) config={};
 	if (!config.file_types) config.file_types=[];
+	if (!config.exclude) config.exclude=[];
 	if (!('initialize' in config)) config.initialize=true;
 	
 	this.initialize=function() {initialize_folder_data();};
@@ -24,7 +25,10 @@ function WFSClient(host,fsname,folder,config) {
 	}
 	
 	function initialize_folder_data() {
+		var recursive='true';
+		if (('recursive' in config)&&(!config.recursive)) recursive='false';
 		var url=m_base_url+'/getFolderData?fsname='+fsname+'&path='+folder+'&file_types='+JSON.stringify(config.file_types);
+		url+='&recursive='+recursive;
 		m_folder_data=get_json(url);
 		m_initialized=true;
 	}
