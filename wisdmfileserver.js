@@ -98,8 +98,8 @@ http.createServer(function (REQ, RESP) {
 			}
 			
 			read_file_bytes(path,bytes,function(tmp1) {
-				if (!tmp.success) {
-					console.error("Error in read_file_bytes: "+tmp1.error);
+				if (!tmp1.success) {
+					console.error("Error in read_file_bytes: "+tmp1.error+':'+path+':'+bytes);
 					RESP.end();
 					return;
 				}
