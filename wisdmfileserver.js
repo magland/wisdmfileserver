@@ -86,6 +86,7 @@ http.createServer(function (REQ, RESP) {
 		}
 		else if (url_parts.pathname=='/wisdmfileserver/getFileBytes') {
 			var checksum=url_parts.query.checksum||'';
+			var bytes=url_parts.query.bytes||'';
 			
 			RESP.writeHead(200, {"Access-Control-Allow-Origin":"*", "Content-Type":"application/octet-stream"});
 			
@@ -96,7 +97,7 @@ http.createServer(function (REQ, RESP) {
 				return;
 			}
 			
-			read_file_bytes(path,function(tmp1) {
+			read_file_bytes(path,bytes,function(tmp1) {
 				if (!tmp.success) {
 					console.error("Error in read_file_bytes: "+tmp1.error);
 					RESP.end();
