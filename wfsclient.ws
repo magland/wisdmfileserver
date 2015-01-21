@@ -96,7 +96,7 @@ function WFSClient(host,fsname,folder,config) {
 		console.log(url);
 		
 		BEGIN_PROCESS bash [file X]=download_file(string url)
-		PROCESSOR_ID ADRy9voF93PBk1si-bytes2
+		PROCESSOR_ID ADRy9voF93PBk1si-bytes3
 		
 		#download a file by url
 		

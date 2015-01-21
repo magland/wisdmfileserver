@@ -12,6 +12,7 @@ function run() {
 	
 	BEGIN_PROCESS bash []=test_file(file X)
 	cat $X
+	echo "\ntesting\n"
 	END_PROCESS
 	
 	
@@ -35,7 +36,8 @@ function run() {
 	var X=FS.loadFile('test1.txt');
 	
 	BEGIN_PROCESS bash []=test_file(file X)
-	cat $X
+	#cat $X
+	echo "testing 123\n"
 	END_PROCESS
 	
 	FS.saveFile('test1_saved.txt',X);
