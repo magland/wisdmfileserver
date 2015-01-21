@@ -84,6 +84,28 @@ http.createServer(function (REQ, RESP) {
 				RESP.end();
 			});
 		}
+		else if (url_parts.pathname=='/wisdmfileserver/getFileBytes') {
+			var checksum=url_parts.query.checksum||'';
+			
+			RESP.writeHead(200, {"Access-Control-Allow-Origin":"*", "Content-Type":"application/octet-stream"});
+			
+			var path=wisdmconfig.wisdmfileserver.data_path+'/data/'+checksum+'.dat';
+		
+			if (!file_exists(path)) {
+				RESP.end();
+				return;
+			}
+			
+			read_file_bytes(path,function(tmp1) {
+				if (!tmp.success) {
+					console.error("Error in read_file_bytes: "+tmp1.error);
+					RESP.end();
+					return;
+				}
+				RESP.write(tmp1.data);
+				RESP.end();
+			});
+		}
 		else {
 			send_json_response({success:false,error:'Unrecognized url path.'});
 		}
@@ -143,6 +165,38 @@ http.createServer(function (REQ, RESP) {
 		else {
 			send_json_response({success:false,error:'Unexpected path for POST: '+url_parts.pathname});
 		}
+	}
+	
+	function read_file_bytes(path,bytes,callback) {
+		var spawn=require('child_process').spawn;
+		
+		var args=[__dirname+'/read_file_bytes.js',path,bytes];
+		var node_executable=wisdmconfig.processingnodeclient.node_executable||'node';
+		spawned_process=spawn(node_executable,args);
+		
+		var buffers=[];
+			
+		spawned_process.stdout.on('data',function(data) {
+			buffers.push(data);
+		});
+		
+		spawned_process.on('close', function (code) {
+			var data_size=0;
+			buffers.forEach(function(buffer) {data_size+=buffer.length;});
+			
+			if (data_size) {
+				var data=new Buffer(data_size);
+				var pos=0;
+				buffers.forEach(function(buffer) {
+					buffer.copy(data,pos,0,buffer.length);
+					pos+=buffer.length;
+				});
+				callback({success:true,data:data});
+			}
+			else {
+				callback({success:false,error:'No bytes read'});
+			}
+		});
 	}
 	
 	function create_path_for_file(relpath,basepath) {
