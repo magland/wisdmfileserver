@@ -12,6 +12,7 @@ function WFSClient(host,fsname,folder,config) {
 	this.writeTextFile=function(path,text) {return _writeTextFile(path,text);};
 	this.readDir=function(path) {return _readDir(path);};
 	this.loadFile=function(path) {return _loadFile(path);};
+	this.loadFileBytes=function(path,bytes) {return _loadFileBytes(path,bytes);};
 	this.saveFile=function(path,file_obj) {return _saveFile(path,file_obj);};
 	this.loadArray=function(path) {return _loadArray(path);};
 	this.loadNii=function(path) {return _loadNii(path);};
@@ -72,6 +73,29 @@ function WFSClient(host,fsname,folder,config) {
 		
 		BEGIN_PROCESS bash [file X]=download_file(string url)
 		PROCESSOR_ID ADRy9voF93PBk1si
+		
+		#download a file by url
+		
+		wget $url -O $X
+		RC=$?
+		if [ "$RC" = "0" ]; then
+			echo "OK";
+		else
+			echo "wget FAILED";
+			exit 1;
+		fi
+		
+		END_PROCESS
+		
+		return X;
+	}
+	function _loadFileBytes(path,bytes) {
+		var checksum=find_file_checksum(path);
+		if (!checksum) return null;
+		var url=m_base_url+'/getFileBytes?checksum='+checksum+'&bytes='+bytes;
+		
+		BEGIN_PROCESS bash [file X]=download_file(string url)
+		PROCESSOR_ID ADRy9voF93PBk1si-bytes
 		
 		#download a file by url
 		
