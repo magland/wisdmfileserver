@@ -8,11 +8,11 @@ function run() {
 	console.log(txt1);
 	
 	
-	var X=FS.loadFileBytes('scans.json','0:20');
+	var X=FS.loadFileBytes('scans.json','0:2:20');
 	
 	BEGIN_PROCESS bash []=test_file(file X)
 	cat $X
-	echo "\ntesting\n"
+	printf "\ntesting\n"
 	END_PROCESS
 	
 	
