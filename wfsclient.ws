@@ -93,9 +93,10 @@ function WFSClient(host,fsname,folder,config) {
 		var checksum=find_file_checksum(path);
 		if (!checksum) return null;
 		var url=m_base_url+'/getFileBytes?checksum='+checksum+'&bytes='+bytes;
+		console.log(url);
 		
 		BEGIN_PROCESS bash [file X]=download_file(string url)
-		PROCESSOR_ID ADRy9voF93PBk1si-bytes
+		PROCESSOR_ID ADRy9voF93PBk1si-bytes2
 		
 		#download a file by url
 		

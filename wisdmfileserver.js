@@ -171,7 +171,7 @@ http.createServer(function (REQ, RESP) {
 		var spawn=require('child_process').spawn;
 		
 		var args=[__dirname+'/read_file_bytes.js',path,bytes];
-		var node_executable=wisdmconfig.processingnodeclient.node_executable||'node';
+		var node_executable=wisdmconfig.wisdmfileserver.node_executable||'node';
 		spawned_process=spawn(node_executable,args);
 		
 		var buffers=[];
