@@ -321,6 +321,11 @@ http.createServer(function (REQ, RESP) {
 				return;
 			}
 			var doc=docs[0];
+			//remove the other ones
+			for (var i=1; i<docs.length; i++) {
+				console.warning("removing additional doc for path = "+path);
+				DB.remove({_id:path,mtime:docs[i].mtime.getTime(),size:docs[i].size});
+			}
 			if (doc) {
 				if ((Number(doc.mtime)==stats.mtime.getTime())&&(Number(doc.size)==Number(stats.size))) {
 					finalize(doc.checksum);
