@@ -322,14 +322,18 @@ http.createServer(function (REQ, RESP) {
 			}
 			var doc=docs[0];
 			if (doc) {
-				if ((doc.mtime==stats.mtime)&&(doc.size==stats.size)) {
+				if ((Number(doc.mtime)==stats.mtime.getTime())&&(Number(doc.size)==Number(stats.size))) {
 					finalize(doc.checksum);
 					return;
+				}
+				else {
+					console.log('Removing path from database because size or modification time changed: '+path);
+					DB.remove({_id:path,mtime:doc.mtime.getTime(),size:doc.size});
 				}
 			}
 			compute_file_checksum(path,function(checksum) {
 				if (checksum) {
-					DB.save({_id:path,checksum:checksum,mtime:stats.mtime,size:stats.size},function(err) {
+					DB.save({_id:path,checksum:checksum,mtime:stats.mtime.getTime(),size:stats.size},function(err) {
 						if (err) {
 							console.error('Unexpected problem saving checksum to database');
 						}
