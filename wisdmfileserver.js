@@ -324,7 +324,7 @@ http.createServer(function (REQ, RESP) {
 			//remove the other ones
 			for (var i=1; i<docs.length; i++) {
 				console.warning("removing additional doc for path = "+path);
-				DB.remove({_id:path,mtime:docs[i].mtime.getTime(),size:docs[i].size});
+				DB.remove({_id:path,mtime:docs[i].mtime,size:docs[i].size});
 			}
 			if (doc) {
 				if ((Number(doc.mtime)==stats.mtime.getTime())&&(Number(doc.size)==Number(stats.size))) {
@@ -333,7 +333,7 @@ http.createServer(function (REQ, RESP) {
 				}
 				else {
 					console.log('Removing path from database because size or modification time changed: '+path);
-					DB.remove({_id:path,mtime:doc.mtime.getTime(),size:doc.size});
+					DB.remove({_id:path,mtime:doc.mtime,size:doc.size});
 				}
 			}
 			compute_file_checksum(path,function(checksum) {
