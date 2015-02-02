@@ -32,43 +32,46 @@ function DatabaseManager(database_name,database_port) {
 	function _find(query,fields,callback) {
 		initialize_operation(function(tmp) {
 			if (!tmp.success) {
-				callback(tmp); return;
+				if (callback) callback(tmp); 
+				return;
 			}
 			var CC=m_database.collection(m_collection);
 			CC.find(query,fields).toArray(function(err,docs) {
-				callback(err,docs);
+				if (callback) callback(err,docs);
 				finalize_operation(tmp.operation_id);
 			});
 		});
 	}
 	function _insert(doc,callback) {
 		if ((typeof(doc.length)!='undefined')&&(doc.length===0)) {
-			callback('');
+			if (callback) callback('');
 			return;
 		}
 		initialize_operation(function(tmp) {
 			if (!tmp.success) {
-				callback(tmp); return;
+				if (callback) callback(tmp);
+				return;
 			}
 			var CC=m_database.collection(m_collection);
 			CC.insert(doc,function(err) {
-				callback(err);
+				if (callback) callback(err);
 				finalize_operation(tmp.operation_id);
 			});
 		});
 	}
 	function _save(doc,callback) {
 		if ((typeof(doc.length)!='undefined')&&(doc.length===0)) {
-			callback('');
+			if (callback) callback('');
 			return;
 		}
 		initialize_operation(function(tmp) {
 			if (!tmp.success) {
-				callback(tmp); return;
+				if (callback) callback(tmp);
+				return;
 			}
 			var CC=m_database.collection(m_collection);
 			CC.save(doc,function(err) {
-				callback(err);
+				if (callback) callback(err);
 				finalize_operation(tmp.operation_id);
 			});
 		});
@@ -76,11 +79,12 @@ function DatabaseManager(database_name,database_port) {
 	function _update(query,obj,callback) {
 		initialize_operation(function(tmp) {
 			if (!tmp.success) {
-				callback(tmp); return;
+				if (callback) callback(tmp);
+				return;
 			}
 			var CC=m_database.collection(m_collection);
 			CC.update(query,obj,function(err) {
-				callback(err);
+				if (callback) callback(err);
 				finalize_operation(tmp.operation_id);
 			});
 		});
@@ -88,11 +92,12 @@ function DatabaseManager(database_name,database_port) {
 	function _upsert(query,obj,callback) {
 		initialize_operation(function(tmp) {
 			if (!tmp.success) {
-				callback(tmp); return;
+				if (callback) callback(tmp);
+				return;
 			}
 			var CC=m_database.collection(m_collection);
 			CC.update(query,obj,{upsert:true},function(err) {
-				callback(err);
+				if (callback) callback(err);
 				finalize_operation(tmp.operation_id);
 			});
 		});
@@ -100,11 +105,12 @@ function DatabaseManager(database_name,database_port) {
 	function _remove(selector,callback) {
 		initialize_operation(function(tmp) {
 			if (!tmp.success) {
-				callback(tmp); return;
+				if (callback) callback(tmp);
+				return;
 			}
 			var CC=m_database.collection(m_collection);
 			CC.remove(selector,function(err) {
-				callback(err);
+				if (callback) callback(err);
 				finalize_operation(tmp.operation_id);
 			});
 		});
@@ -122,11 +128,12 @@ function DatabaseManager(database_name,database_port) {
 	function initialize_operation(callback) {
 		open_database_if_needed(function(tmp1) {
 			if (!tmp1.success) {
-				callback(tmp1); return;
+				if (callback) callback(tmp1);
+				return;
 			}
 			var operation_id=make_random_id();
 			m_current_operations[operation_id]={time_started:new Date()};
-			callback({success:true,operation_id:operation_id});
+			if (callback) callback({success:true,operation_id:operation_id});
 		});
 	}
 	function finalize_operation(operation_id) {
@@ -135,7 +142,7 @@ function DatabaseManager(database_name,database_port) {
 	}
 	function wait_until_done_opening_database(callback) {
 		if (!m_opening_database) {
-			callback();
+			if (callback) callback();
 			return;
 		}
 		setTimeout(function() {
@@ -152,7 +159,7 @@ function DatabaseManager(database_name,database_port) {
 		m_opening_database=true;
 		if (m_database) {
 			m_opening_database=false;
-			callback({success:true});
+			if (callback) callback({success:true});
 			return;
 		}
 		m_database=new mongo.Db(database_name,new mongo.Server("localhost",database_port,{}),{safe:true});
@@ -160,12 +167,12 @@ function DatabaseManager(database_name,database_port) {
 			if (err) {
 				m_database=null;
 				m_opening_database=false;
-				callback({success:false,error:'Unable to open database: '+database_name+' '+err});
+				if (callback) callback({success:false,error:'Unable to open database: '+database_name+' '+err});
 				return;
 			}
 			m_last_open_time=new Date();
 			m_opening_database=false;
-			callback({success:true});
+			if (callback) callback({success:true});
 		});
 	}
 	function periodic_check() {
