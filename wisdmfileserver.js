@@ -120,6 +120,7 @@ http.createServer(function (REQ, RESP) {
 			var text=url_parts.query.text||'';
 			
 			if (!create_path_for_file(path,wisdmconfig.wisdmfileserver.data_path+'/files/'+fsname)) {
+				console.error("Problem in setFileData, unable to create folder for file.");
 				send_json({success:false,error:'Unable to create folder for file.'});
 				return;
 			}
@@ -130,6 +131,7 @@ http.createServer(function (REQ, RESP) {
 			
 			var file_size=REQ.headers['content-length'];
 			if (file_size>10*1000*1000) {
+				console.error("Problem in setFileData, file is too large: "+file_size);
 				send_json_response({success:false,error:'File is too large: '+file_size});
 				return;
 			}
@@ -147,6 +149,7 @@ http.createServer(function (REQ, RESP) {
 			REQ.on('end',function() {
 				if (done) return;
 				if (byte_count!=file_size) {
+					console.error("Problem in setFileData, unexpected file size: "+byte_count+" <> "+file_size);
 					send_json_response({success:false,error:'Unexpected file size: '+byte_count+' <> '+file_size});
 					done=true;
 					return;
@@ -155,6 +158,7 @@ http.createServer(function (REQ, RESP) {
 					remove_file(path0);
 				}
 				if (!rename_file(tmppath0,path0)) {
+					console.error("Problem in setFileData, Problem renaming file.");
 					send_json_response({success:false,error:'Problem renaming file'});
 					done=true;
 					return;
