@@ -5,7 +5,10 @@ var bytes=process.argv[3]||'';
 if ((!path)||(!bytes)) {
 	return;
 }
-read_file_bytes(path,bytes);
+var num_bytes_written=0;
+if (!read_file_bytes(path,bytes)) {
+	console.error("Problem in read_file_bytes");
+}
 
 function read_file_bytes_subarray(path,bytes) {
 	var list1=bytes.split(';');
@@ -70,7 +73,11 @@ function read_file_bytes_subarray(path,bytes) {
 								fs.closeSync(fd);
 								return false;
 							}
-							process.stdout.write(buf);
+							if (!process.stdout.write(buf)) {
+								console.error("Problem writing to stdout (1)");
+								return false;
+							}
+							num_bytes_written+=size;
 							curpos+=size;
 						curpos+=(dimensions[0]-index[0]-1)*size;
 					}
@@ -80,7 +87,11 @@ function read_file_bytes_subarray(path,bytes) {
 								fs.closeSync(fd);
 								return false;
 							}
-							process.stdout.write(buf);
+							if (!process.stdout.write(buf)) {
+								console.error("Problem writing to stdout (2)");
+								return false;
+							}
+							num_bytes_written+=dimensions[0]*size;
 						curpos+=dimensions[0]*size;
 					}
 				}
@@ -111,10 +122,18 @@ function read_entire_file(path) {
 		var num_bytes_read=fs.readSync(fd,buf,0,chunksize,curpos);
 		curpos+=num_bytes_read;
 		if (num_bytes_read==chunksize) {
-			process.stdout.write(buf);
+			if (!process.stdout.write(buf)) {
+				console.error("Problem writing to stdout (3)");
+				return false;
+			}
+			num_bytes_written+=chunksize;
 		}
 		else if (num_bytes_read>0) {
-			process.stdout.write(buf.slice(0,num_bytes_read));
+			if (!process.stdout.write(buf.slice(0,num_bytes_read))) {
+				console.error("Problem writing to stdout (1)");
+				return false;
+			}
+			num_bytes_written+=num_bytes_read;
 		}
 		else {
 			done=true;
@@ -158,7 +177,11 @@ function read_file_bytes(path,bytes) {
 				fs.closeSync(fd);
 				return false;
 			}
-			process.stdout.write(buf);
+			if (!process.stdout.write(buf)) {
+				console.error("Problem writing to stdout (5)");
+				return false;
+			}
+			num_bytes_written+=1;
 		}
 		else if (list1.length==2) {
 			var size=list1[1]-list1[0]+1;
@@ -168,7 +191,11 @@ function read_file_bytes(path,bytes) {
 				fs.closeSync(fd);
 				return false;
 			}
-			process.stdout.write(buf);
+			if (!process.stdout.write(buf)) {
+				console.error("Problem writing to stdout (6)");
+				return false;
+			}
+			num_bytes_written+=size;
 		}
 		else if (list1.length==3) {
 			for (var j=list1[0]; j<=list1[2]; j+=list1[1]) {
@@ -177,13 +204,15 @@ function read_file_bytes(path,bytes) {
 					fs.closeSync(fd);
 					return false;
 				}
-				process.stdout.write(buf);
+				if (!process.stdout.write(buf)) {
+					console.error("Problem writing to stdout (7)");
+					return false;
+				}
+				num_bytes_written+=1;
 			}
 		}
 	}
 	fs.closeSync(fd);
+	return true;
 }
-
-
-
 

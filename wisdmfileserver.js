@@ -181,6 +181,10 @@ http.createServer(function (REQ, RESP) {
 			buffers.push(data);
 		});
 		
+		spawned_process.stderr.on('data',function(data) {
+			console.log('ERROR: '+data);
+		});
+		
 		spawned_process.on('close', function (code) {
 			var data_size=0;
 			buffers.forEach(function(buffer) {data_size+=buffer.length;});
