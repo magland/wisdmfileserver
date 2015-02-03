@@ -163,7 +163,7 @@ http.createServer(function (REQ, RESP) {
 					}
 				}
 				if (!rename_file(tmppath0,path0)) {
-					console.error("Problem in setFileData, Problem renaming file.");
+					console.error("Problem in setFileData, Problem renaming file: "+tmppath0+" -> "+path0);
 					send_json_response({success:false,error:'Problem renaming file'});
 					done=true;
 					return;
@@ -234,13 +234,20 @@ http.createServer(function (REQ, RESP) {
 		return false;
 	}
 	function rename_file(path1,path2) {
-		if (!file_exists(path1)) return false;
-		if (file_exists(path2)) return false;
+		if (!file_exists(path1)) {
+			console.error("Unable to rename file because file does not exist: "+path1);
+			return false;
+		}
+		if (file_exists(path2)) {
+			console.error("Unable to rename file because file already exists: "+path2);
+			return false;
+		}
 		try {
 			fs.renameSync(path1,path2);
 			return true;
 		}
 		catch(err) {
+			console.error("Exception in renaming file: "+err.message);
 			return false;
 		}
 	}
