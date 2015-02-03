@@ -148,28 +148,28 @@ http.createServer(function (REQ, RESP) {
 			});
 			REQ.on('end',function() {
 				if (done) return;
-				if (byte_count!=file_size) {
-					console.error("Problem in setFileData, unexpected file size: "+byte_count+" <> "+file_size);
-					send_json_response({success:false,error:'Unexpected file size: '+byte_count+' <> '+file_size});
-					done=true;
-					return;
-				}
-				if (file_exists(path0)) {
-					if (!remove_file(path0)) {
-						console.error("Problem in setFileData, Problem removing file.");
-						send_json_response({success:false,error:'Problem removing file'});
-						done=true;
+				done=true;
+				
+				setTimeout(function() { //seems that we need to delay to guarantee that the file exists
+					if (byte_count!=file_size) {
+						console.error("Problem in setFileData, unexpected file size: "+byte_count+" <> "+file_size);
+						send_json_response({success:false,error:'Unexpected file size: '+byte_count+' <> '+file_size});
 						return;
 					}
-				}
-				if (!rename_file(tmppath0,path0)) {
-					console.error("Problem in setFileData, Problem renaming file: "+tmppath0+" -> "+path0);
-					send_json_response({success:false,error:'Problem renaming file'});
-					done=true;
-					return;
-				}
-				send_json_response({success:true});
-				done=true;
+					if (file_exists(path0)) {
+						if (!remove_file(path0)) {
+							console.error("Problem in setFileData, Problem removing file.");
+							send_json_response({success:false,error:'Problem removing file'});
+							return;
+						}
+					}
+					if (!rename_file(tmppath0,path0)) {
+						console.error("Problem in setFileData, Problem renaming file: "+tmppath0+" -> "+path0);
+						send_json_response({success:false,error:'Problem renaming file'});
+						return;
+					}
+					send_json_response({success:true});
+				},20);
 			});
 		}
 		else {
