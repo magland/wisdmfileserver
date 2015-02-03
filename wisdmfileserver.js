@@ -155,7 +155,12 @@ http.createServer(function (REQ, RESP) {
 					return;
 				}
 				if (file_exists(path0)) {
-					remove_file(path0);
+					if (!remove_file(path0)) {
+						console.error("Problem in setFileData, Problem removing file.");
+						send_json_response({success:false,error:'Problem removing file'});
+						done=true;
+						return;
+					}
 				}
 				if (!rename_file(tmppath0,path0)) {
 					console.error("Problem in setFileData, Problem renaming file.");
@@ -251,6 +256,7 @@ http.createServer(function (REQ, RESP) {
 		}
 		catch(err) {
 		}
+		return (!file_exists(path));
 	}
 	
 	function get_folder_data(fsname,path,file_types,exclude,recursive,callback) {
