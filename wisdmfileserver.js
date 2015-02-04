@@ -306,11 +306,14 @@ http.createServer(function (REQ, RESP) {
 							cb({success:true});
 						});
 					}
-					else cb({success:true});
+					else {
+						cb({success:true});
+					}
 				}
 			}
 			else cb({success:true});
 		},function() {
+			console.log("Done with get_folder_data");
 			callback(ret);
 		});
 	}
@@ -444,6 +447,7 @@ http.createServer(function (REQ, RESP) {
 	function send_json_response(obj) {
 		RESP.writeHead(200, {"Access-Control-Allow-Origin":"*", "Content-Type":"application/json"});
 		RESP.end(JSON.stringify(obj));
+		console.log("SENT json response: "+JSON.stringify(obj).length);
 	}
 	function send_text_response(text) {
 		RESP.writeHead(200, {"Access-Control-Allow-Origin":"*", "Content-Type":"text/plain"});
