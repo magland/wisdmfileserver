@@ -178,6 +178,8 @@ http.createServer(function (REQ, RESP) {
 	}
 	
 	function read_file_bytes(path,bytes,callback) {
+		var timer=new Date();
+		console.log("READ_FILE_BYTES BEGIN "+bytes);
 		var spawn=require('child_process').spawn;
 		
 		var args=[__dirname+'/read_file_bytes.js',path,bytes];
@@ -205,6 +207,7 @@ http.createServer(function (REQ, RESP) {
 					buffer.copy(data,pos,0,buffer.length);
 					pos+=buffer.length;
 				});
+				console.log("READ_FILE_BYTES END "+bytes+" "+((new Date())-timer));
 				callback({success:true,data:data});
 			}
 			else {
