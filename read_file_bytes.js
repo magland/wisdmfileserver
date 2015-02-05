@@ -1,5 +1,8 @@
 var fs=require('fs');
 
+var write_buffer=new Buffer(1000);
+var write_buffer_index=0;
+
 var path=process.argv[2]||'';
 var bytes=process.argv[3]||'';
 if ((!path)||(!bytes)) {
@@ -8,6 +11,9 @@ if ((!path)||(!bytes)) {
 var num_bytes_written=0;
 if (!read_file_bytes(path,bytes)) {
 	console.error("Problem in read_file_bytes");
+}
+else {
+	clear_write_buffer();
 }
 
 function read_file_bytes_subarray(path,bytes) {
@@ -73,10 +79,7 @@ function read_file_bytes_subarray(path,bytes) {
 								fs.closeSync(fd);
 								return false;
 							}
-							if (!process.stdout.write(buf)) {
-								console.error("Problem writing to stdout (1)");
-								return false;
-							}
+							if (!do_write(buf)) return false;
 							num_bytes_written+=size;
 							curpos+=size;
 						curpos+=(dimensions[0]-index[0]-1)*size;
@@ -87,10 +90,7 @@ function read_file_bytes_subarray(path,bytes) {
 								fs.closeSync(fd);
 								return false;
 							}
-							if (!process.stdout.write(buf)) {
-								console.error("Problem writing to stdout (2)");
-								return false;
-							}
+							if (!do_write(buf)) return false;
 							num_bytes_written+=dimensions[0]*size;
 						curpos+=dimensions[0]*size;
 					}
@@ -122,17 +122,11 @@ function read_entire_file(path) {
 		var num_bytes_read=fs.readSync(fd,buf,0,chunksize,curpos);
 		curpos+=num_bytes_read;
 		if (num_bytes_read==chunksize) {
-			if (!process.stdout.write(buf)) {
-				console.error("Problem writing to stdout (3)");
-				return false;
-			}
+			if (!do_write(buf)) return false;
 			num_bytes_written+=chunksize;
 		}
 		else if (num_bytes_read>0) {
-			if (!process.stdout.write(buf.slice(0,num_bytes_read))) {
-				console.error("Problem writing to stdout (1)");
-				return false;
-			}
+			if (!do_write(buf.slice(0,num_bytes_read))) return false;
 			num_bytes_written+=num_bytes_read;
 		}
 		else {
@@ -177,10 +171,7 @@ function read_file_bytes(path,bytes) {
 				fs.closeSync(fd);
 				return false;
 			}
-			if (!process.stdout.write(buf)) {
-				console.error("Problem writing to stdout (5)");
-				return false;
-			}
+			if (!do_write(buf)) return false;
 			num_bytes_written+=1;
 		}
 		else if (list1.length==2) {
@@ -191,10 +182,7 @@ function read_file_bytes(path,bytes) {
 				fs.closeSync(fd);
 				return false;
 			}
-			if (!process.stdout.write(buf)) {
-				console.error("Problem writing to stdout (6)");
-				return false;
-			}
+			if (!do_write(buf)) return false;
 			num_bytes_written+=size;
 		}
 		else if (list1.length==3) {
@@ -204,10 +192,7 @@ function read_file_bytes(path,bytes) {
 					fs.closeSync(fd);
 					return false;
 				}
-				if (!process.stdout.write(buf)) {
-					console.error("Problem writing to stdout (7)");
-					return false;
-				}
+				if (!do_write(buf)) return false;
 				num_bytes_written+=1;
 			}
 		}
@@ -215,4 +200,41 @@ function read_file_bytes(path,bytes) {
 	fs.closeSync(fd);
 	return true;
 }
+
+function do_write(buffer) {
+
+	if (write_buffer_index>=write_buffer.length) {
+		if (!clear_write_buffer()) return false;
+	}
+	
+	var buffer_index=0;
+	while (buffer.length-buffer_index>write_buffer.length-write_buffer_index) {
+		var len=write_buffer.length-write_buffer_index;
+		buffer.copy(write_buffer,write_buffer_index,buffer_index,buffer_index+len);
+		buffer_index+=len;
+		write_buffer_index+=len;
+		if (!clear_write_buffer()) return false;
+	}
+	if (buffer_index<buffer.length) {
+		var len=buffer.length-buffer_index;
+		buffer.copy(write_buffer,write_buffer_index,buffer_index,buffer_index+len);
+		buffer_index+=len;
+		write_buffer_index+=len;
+		if (write_buffer_index>=write_buffer.length) {
+			if (!clear_write_buffer()) return false;
+		}
+	}
+	return true;
+}
+function clear_write_buffer() {
+	if (write_buffer_index==0) return;
+	if (!process.stdout.write(write_buffer.slice(0,write_buffer_index))) {
+		console.error("Problem writing to stdout (2)");
+		return false;
+	}
+	write_buffer_index=0;
+	return true;
+}
+
+
 
