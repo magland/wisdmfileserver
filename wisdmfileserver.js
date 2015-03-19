@@ -110,7 +110,7 @@ http.createServer(function (REQ, RESP) {
 		else if (url_parts.pathname=='/wisdmfileserver/renameFile') {
 			var fsname=url_parts.query.fsname||'';
 			var path=url_parts.query.path||'';
-			var new_path=url_parts.query.path||'';
+			var new_path=url_parts.query.new_path||'';
 			if ((!path)||(!new_path)) {
 				send_json_response({success:false,error:'path or new_path is empty.'});
 				return;
