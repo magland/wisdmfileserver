@@ -3,6 +3,7 @@ function WFSClient(fshost,fsname,folder) {
 	this.readTextFile=function(path,callback) {_readTextFile(path,callback);};
 	this.writeTextFile=function(path,text,callback) {_writeTextFile(path,text,callback);};
 	this.readDir=function(path,callback) {_readDir(path,callback);};
+	this.renameFile=function(path,new_path,callback) {_renameFile(path,new_path,callback);};
 	
 	if (!fshost) fshost=get_default_host();
 	
@@ -32,6 +33,15 @@ function WFSClient(fshost,fsname,folder) {
 				return;
 			}
 			callback({success:true});
+		});
+	}
+	
+	function _rename_file(path,new_path,callback) {
+		var url='http://'+fshost+'/wisdmfileserver/renameFile?fsname='+fsname+'&path='+append_paths(folder,path)+'&new_path='+append_paths(folder,new_path);
+		url+='&rand='+Math.random();
+		console.log('rename_file: '+url);
+		$.get(url,function(resp) {
+			callback(resp);
 		});
 	}
 	
