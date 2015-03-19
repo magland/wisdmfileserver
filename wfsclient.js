@@ -36,7 +36,7 @@ function WFSClient(fshost,fsname,folder) {
 		});
 	}
 	
-	function _rename_file(path,new_path,callback) {
+	function _renameFile(path,new_path,callback) {
 		var url='http://'+fshost+'/wisdmfileserver/renameFile?fsname='+fsname+'&path='+append_paths(folder,path)+'&new_path='+append_paths(folder,new_path);
 		url+='&rand='+Math.random();
 		console.log('rename_file: '+url);
