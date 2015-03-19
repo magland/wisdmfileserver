@@ -107,6 +107,24 @@ http.createServer(function (REQ, RESP) {
 				RESP.end();
 			});
 		}
+		else if (url_parts.pathname=='/wisdmfileserver/renameFile') {
+			var fsname=url_parts.query.fsname||'';
+			var path=url_parts.query.path||'';
+			var new_path=url_parts.query.path||'';
+			if ((!path)||(!new_path)) {
+				send_json_response({success:false,error:'path or new_path is empty.'});
+				return;
+			}
+			var path1=wisdmconfig.wisdmfileserver.data_path+'/files/'+fsname+'/'+path;
+			var new_path1=wisdmconfig.wisdmfileserver.data_path+'/files/'+fsname+'/'+new_path;
+			console.log('renameFile',path1,new_path1);
+			if (rename_file(path1,new_path1)) {
+				send_json_response({success:true});
+			}
+			else {
+				send_json_response({success:false,error:'Problem renaming file.'});
+			}
+		}
 		else {
 			send_json_response({success:false,error:'Unrecognized url path.'});
 		}
@@ -120,7 +138,6 @@ http.createServer(function (REQ, RESP) {
 			var text=url_parts.query.text||'';
 			
 			if (!create_path_for_file(path,wisdmconfig.wisdmfileserver.data_path+'/files/'+fsname)) {
-				console.error("Problem in setFileData, unable to create folder for file.");
 				send_json({success:false,error:'Unable to create folder for file.'});
 				return;
 			}
@@ -131,7 +148,6 @@ http.createServer(function (REQ, RESP) {
 			
 			var file_size=REQ.headers['content-length'];
 			if (file_size>10*1000*1000) {
-				console.error("Problem in setFileData, file is too large: "+file_size);
 				send_json_response({success:false,error:'File is too large: '+file_size});
 				return;
 			}
@@ -148,28 +164,21 @@ http.createServer(function (REQ, RESP) {
 			});
 			REQ.on('end',function() {
 				if (done) return;
+				if (byte_count!=file_size) {
+					send_json_response({success:false,error:'Unexpected file size: '+byte_count+' <> '+file_size});
+					done=true;
+					return;
+				}
+				if (file_exists(path0)) {
+					remove_file(path0);
+				}
+				if (!rename_file(tmppath0,path0)) {
+					send_json_response({success:false,error:'Problem renaming file'});
+					done=true;
+					return;
+				}
+				send_json_response({success:true});
 				done=true;
-				
-				setTimeout(function() { //seems that we need to delay to guarantee that the file exists
-					if (byte_count!=file_size) {
-						console.error("Problem in setFileData, unexpected file size: "+byte_count+" <> "+file_size);
-						send_json_response({success:false,error:'Unexpected file size: '+byte_count+' <> '+file_size});
-						return;
-					}
-					if (file_exists(path0)) {
-						if (!remove_file(path0)) {
-							console.error("Problem in setFileData, Problem removing file.");
-							send_json_response({success:false,error:'Problem removing file'});
-							return;
-						}
-					}
-					if (!rename_file(tmppath0,path0)) {
-						console.error("Problem in setFileData, Problem renaming file: "+tmppath0+" -> "+path0);
-						send_json_response({success:false,error:'Problem renaming file'});
-						return;
-					}
-					send_json_response({success:true});
-				},20);
 			});
 		}
 		else {
@@ -178,8 +187,6 @@ http.createServer(function (REQ, RESP) {
 	}
 	
 	function read_file_bytes(path,bytes,callback) {
-		var timer=new Date();
-		console.log("READ_FILE_BYTES BEGIN "+bytes);
 		var spawn=require('child_process').spawn;
 		
 		var args=[__dirname+'/read_file_bytes.js',path,bytes];
@@ -207,7 +214,6 @@ http.createServer(function (REQ, RESP) {
 					buffer.copy(data,pos,0,buffer.length);
 					pos+=buffer.length;
 				});
-				console.log("READ_FILE_BYTES END "+bytes+" "+((new Date())-timer));
 				callback({success:true,data:data});
 			}
 			else {
@@ -237,20 +243,13 @@ http.createServer(function (REQ, RESP) {
 		return false;
 	}
 	function rename_file(path1,path2) {
-		if (!file_exists(path1)) {
-			console.error("Unable to rename file because file does not exist: "+path1);
-			return false;
-		}
-		if (file_exists(path2)) {
-			console.error("Unable to rename file because file already exists: "+path2);
-			return false;
-		}
+		if (!file_exists(path1)) return false;
+		if (file_exists(path2)) return false;
 		try {
 			fs.renameSync(path1,path2);
 			return true;
 		}
 		catch(err) {
-			console.error("Exception in renaming file: "+err.message);
 			return false;
 		}
 	}
@@ -266,7 +265,6 @@ http.createServer(function (REQ, RESP) {
 		}
 		catch(err) {
 		}
-		return (!file_exists(path));
 	}
 	
 	function get_folder_data(fsname,path,file_types,exclude,recursive,callback) {
@@ -309,14 +307,11 @@ http.createServer(function (REQ, RESP) {
 							cb({success:true});
 						});
 					}
-					else {
-						cb({success:true});
-					}
+					else cb({success:true});
 				}
 			}
 			else cb({success:true});
 		},function() {
-			console.log("Done with get_folder_data");
 			callback(ret);
 		});
 	}
@@ -450,7 +445,6 @@ http.createServer(function (REQ, RESP) {
 	function send_json_response(obj) {
 		RESP.writeHead(200, {"Access-Control-Allow-Origin":"*", "Content-Type":"application/json"});
 		RESP.end(JSON.stringify(obj));
-		console.log("SENT json response: "+JSON.stringify(obj).length);
 	}
 	function send_text_response(text) {
 		RESP.writeHead(200, {"Access-Control-Allow-Origin":"*", "Content-Type":"text/plain"});

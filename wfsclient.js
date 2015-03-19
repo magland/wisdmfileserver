@@ -36,7 +36,7 @@ function WFSClient(fshost,fsname,folder) {
 	}
 	
 	function _readDir(path,callback) {
-		var url='http://'+fshost+'/wisdmfileserver/getFolderData?path='+checksum+'&recursive=false';
+		var url='http://'+fshost+'/wisdmfileserver/getFolderData?fsname='+fsname+'&path='+append_paths(folder,path)+'&recursive=false';
 		url+='&rand='+Math.random();
 		console.log('get_folder_data: '+url);
 		$.get(url,function(resp) {
